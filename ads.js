@@ -60,10 +60,15 @@ $(document).ready(function() {
 
 	// Render ads
 	ads.forEach(function(ad) {
-		renderAd(ad);
+		// Check if should render
+		if (shouldRender(ad)) {
+			renderAd(ad);
+		}
 	});	
 });
 
+// Load ad template
+// Render images and text to template
 var renderAd = function(ad) {
 	$("#template").load(ad.template, function() {
   		$imagesDoms = $(".adImage");
@@ -78,4 +83,36 @@ var renderAd = function(ad) {
   			$textDoms[index].innerText = text;
   		});
 	});
+};
+
+// Check if ad timeframe is now
+var shouldRender = function(ad) {
+	var render = true;
+
+	// Get current time
+	var now = new Date();
+
+	// Checking if day of week defined
+	if (ad.timeFrame.daysInWeek) {
+		// If today not exist in days of week
+		render = $.inArray(now.getDay(), ad.timeFrame.daysInWeek) != -1 ? true : false;
+	}
+	
+	// If still render -> check if day isnt date timeline
+	if (render && ad.timeFrame.dateTimeFrame) {
+		if (!(now.getTime() >= ad.timeFrame.dateTimeFrame.start.getTime() &&
+			now.getTime() <= ad.timeFrame.dateTimeFrame.end.getTime())) {
+			render = false;
+		}
+	}
+
+	// If still render -> check if time isnt time timeline
+	if (render && ad.timeFrame.hourTimeFrame) {
+		if (!(now.getHours() >= ad.timeFrame.hourTimeFrame.start.getHours() &&
+			now.getHours() <= ad.timeFrame.hourTimeFrame.end.getHours())) {
+			render = false;
+		}
+	}
+
+	return render;
 };
