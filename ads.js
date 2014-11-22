@@ -14,6 +14,13 @@ var Ad = function(name, template, duration, timeFrame) {
 	this.addText = function(text) {
 		this.texts.push(text);
 	};
+
+	this.startTimer = function() {
+		var timer = window.setInterval(function () {
+			nextAd();
+			window.clearInterval(timer);
+		}, this.duration * 1000);
+	}
 };
 
 // TimeFrame object
@@ -37,13 +44,14 @@ var HourTimeFrame = function(start, end) {
 
 // Ads set
 var ads = [];
+var currentAd;
 
 var setAds = function() {
 	var ad1DateTimeFrame = new DateTimeFrame(new Date("01/01/2014"), new Date("12/31/2014"));
-	var ad1HourTimeFrame = new HourTimeFrame(new Date(0, 0, 0, 6, 0, 0, 0), new Date(0, 0, 0, 12, 0, 0, 0));
-	var ad1TimeFrame = new TimeFrame(ad1DateTimeFrame, [2 - 1, 4 - 1], ad1HourTimeFrame);
+	var ad1HourTimeFrame = new HourTimeFrame(new Date(0, 0, 0, 6, 0, 0, 0), new Date(0, 0, 0, 20, 0, 0, 0));
+	var ad1TimeFrame = new TimeFrame(ad1DateTimeFrame, [7 - 1, 4 - 1], ad1HourTimeFrame);
 
-	var ad1 = new Ad("Lego Movie", "templates/a.html", 30, ad1TimeFrame);
+	var ad1 = new Ad("Lego Movie", "templates/a.html", 5, ad1TimeFrame);
 	ad1.addImage("images/lego/2.png");
 	ad1.addImage("images/lego/3.png");
 	ad1.addText("Lego movie!");
@@ -56,16 +64,20 @@ var setAds = function() {
 
 // Doc ready
 $(document).ready(function() {
-	console.log(ads);
-
 	// Render ads
+	renderAds();
+});
+
+var renderAds = function() {
 	ads.forEach(function(ad) {
 		// Check if should render
-		if (shouldRender(ad)) {
+		if (shouldRender(ad) && ad != currentAd) {
+			currentAd = ad;
 			renderAd(ad);
+			return;
 		}
-	});	
-});
+	});
+}
 
 // Load ad template
 // Render images and text to template
@@ -82,6 +94,8 @@ var renderAd = function(ad) {
   		ad.texts.forEach(function(text, index) {
   			$textDoms[index].innerText = text;
   		});
+
+  		ad.startTimer();
 	});
 };
 
@@ -115,4 +129,9 @@ var shouldRender = function(ad) {
 	}
 
 	return render;
+};
+
+var nextAd = function() {
+	$("#template").empty();
+	renderAds();
 };
