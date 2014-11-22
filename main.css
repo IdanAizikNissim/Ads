@@ -1,0 +1,17 @@
+div#template {
+
+}
+
+div.ad {
+	border: 1px solid black;
+	border-radius: 5px;
+}
+
+img.adImage {
+	width: 200px;
+	height: 200px;
+}
+
+p.adText {
+	
+}
