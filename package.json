@@ -1,0 +1,22 @@
+{
+  "name": "Ads",
+  "version": "0.0.0",
+  "description": "Ads exercise in JS/JQUERY/NODEJS of colman academy rishon letsiyon",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IdanAizikNissim/Ads.git"
+  },
+  "author": "Idan Aizik-Nissim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IdanAizikNissim/Ads/issues"
+  },
+  "homepage": "https://github.com/IdanAizikNissim/Ads",
+  "dependencies": {
+    "express": "^4.10.4"
+  }
+}

@@ -48,8 +48,8 @@ var currentAd;
 
 var setAds = function() {
 	var ad1DateTimeFrame = new DateTimeFrame(new Date("01/01/2014"), new Date("12/31/2014"));
-	var ad1HourTimeFrame = new HourTimeFrame(new Date(0, 0, 0, 6, 0, 0, 0), new Date(0, 0, 0, 20, 0, 0, 0));
-	var ad1TimeFrame = new TimeFrame(ad1DateTimeFrame, [7 - 1, 4 - 1], ad1HourTimeFrame);
+	var ad1HourTimeFrame = new HourTimeFrame(new Date(0, 0, 0, 6, 0, 0, 0), new Date(0, 0, 0, 23, 0, 0, 0));
+	var ad1TimeFrame = new TimeFrame(ad1DateTimeFrame, [4 - 1, 4 - 1], ad1HourTimeFrame);
 
 	var ad1 = new Ad("Lego Movie", "templates/a.html", 5, ad1TimeFrame);
 	ad1.addImage("images/lego/2.png");
@@ -82,7 +82,13 @@ var renderAds = function() {
 // Load ad template
 // Render images and text to template
 var renderAd = function(ad) {
-	$("#template").load(ad.template, function() {
+	$("#template").load(ad.template, function(responseText, textStatus, req) {
+		// Check if falid to load template
+		if (req.status == '404') {
+			$('#template').append('<h1>Failed to load: ' + ad.template + ' template! Message: ' + req.responseText + '</h1>');
+			return;
+		}
+
   		$imagesDoms = $(".adImage");
   		// Load images
   		ad.images.forEach(function(image, index) {
