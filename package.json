@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/IdanAizikNissim/Ads",
   "dependencies": {
-    "express": "^4.10.4"
+    "express": "^4.10.4",
+    "body-parser": "^1.9.3"
   }
 }
