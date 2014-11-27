@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var ads = require('./server/routes/ads_route.js');
+var stations = require('./server/routes/stations_route.js');
 var app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -14,8 +15,10 @@ app.get('/', function (req, res) {
 	res.send('index.html')
 });
 
+app.get('/stations', stations.getAll);
+app.get('/stations/:id', stations.getById);
 app.get('/ads', ads.getAll);
-app.get('/ads/station/:id?', ads.getAdsByStationId);
+app.get('/ads/station/:id?', ads.getByStationId);
 
 var server = app.listen(8080, function () {
 	var host = server.address().address
