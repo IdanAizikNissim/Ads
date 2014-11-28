@@ -43,9 +43,10 @@ var HourTimeFrame = function(start, end) {
 };
 
 // Ads set
-var ads = [];
+// var ads = [];
 var currentAd;
 
+/*
 var setAds = function() {
 	var ad1DateTimeFrame = new DateTimeFrame(new Date("01/01/2014"), new Date("12/31/2014"));
 	var ad1HourTimeFrame = new HourTimeFrame(new Date(0, 0, 0, 6, 0, 0, 0), new Date(0, 0, 0, 23, 0, 0, 0));
@@ -61,14 +62,49 @@ var setAds = function() {
 
 	ads.push(ad1);
 }; setAds();
+*/
 
 // Doc ready
 $(document).ready(function() {
-	// Render ads
-	renderAds();
+	// Get screen params
+	var screenId = getURLParameter('station');
+	if (screenId) {
+		// Get station's ads
+		getAds(screenId);
+	} else {
+		// Get stations (screens) and render
+		getStations();
+	}
 });
 
-var renderAds = function() {
+var getStations = function() {
+	$.getJSON('/stations', function(data) {
+		var stations = [];
+		$.each(data['stations'], function(key, station) {
+			stations.push("<div class='station' id='" + station.id + "'><a href='/screen/" + station.id + "'>"
+				+ station.name + "</a></div>");
+		});
+
+		$('<div/>', {
+			'class': 'stations',
+			html: stations.join('')
+		}).appendTo('body')
+	});
+}
+
+var getAds = function(stationId) {
+	$.getJSON('/ads/station/' + stationId, function(data) {
+		// Append template div for ads
+		$('<div/>', {
+			'id': 'template'
+		}).appendTo('body');
+
+		// render ads
+		renderAds(data);
+	});
+}
+
+var renderAds = function(ads) {
 	ads.forEach(function(ad) {
 		// Check if should render
 		if (shouldRender(ad) && ad != currentAd) {
@@ -141,3 +177,14 @@ var nextAd = function() {
 	$("#template").empty();
 	renderAds();
 };
+
+var getURLParameter = function(sParam) {
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam) {
+            return sParameterName[1];
+        }
+    }
+}

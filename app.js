@@ -12,7 +12,10 @@ app.use(express.static(__dirname + '/public'));
 // ROUTES
 // ######
 app.get('/', function (req, res) {
-	res.send('index.html')
+	res.send('index.html');
+});
+app.get('/screen/:screenId', function (req, res) {
+	res.redirect('/index.html?station=' + req.params.screenId);
 });
 
 app.get('/stations', stations.getAll);
