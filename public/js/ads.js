@@ -1,10 +1,10 @@
 // Ad object
-var Ad = function(name, template, duration, timeFrame) {
+var Ad =function(name, templateUrl, displayDuration, texts, images, timeFrame) {
 	this.name = name;
-	this.texts = [];
-	this.images = [];
-	this.template = template;
-	this.duration = duration;
+	this.texts = texts;
+	this.images = images;
+	this.templateUrl = templateUrl;
+	this.displayDuration = displayDuration;
 	this.timeFrame = timeFrame;
 
 	this.addImage = function(image) {
@@ -17,17 +17,16 @@ var Ad = function(name, template, duration, timeFrame) {
 
 	this.startTimer = function() {
 		var timer = window.setInterval(function () {
-			nextAd();
 			window.clearInterval(timer);
-		}, this.duration * 1000);
+			nextAd();
+		}, this.displayDuration * 1000);
 	}
 };
 
 // TimeFrame object
-var TimeFrame = function(dateTimeFrame, daysInWeek, hourTimeFrame) {
-	this.dateTimeFrame = dateTimeFrame;
-	this.daysInWeek = daysInWeek;
-	this.hourTimeFrame = hourTimeFrame;
+var TimeFrame = function(date, days) {
+	this.date = date;
+	this.days = days;
 };
 
 // DateTimeFrame object
@@ -36,41 +35,58 @@ var DateTimeFrame = function(start, end) {
 	this.end = end;
 };
 
-// HourTimeFrame object
-var HourTimeFrame = function(start, end) {
-	this.start = start;
-	this.end = end;
+// DayTimeFrame object
+var DayTimeFrame = function(day, time) {
+	this.day = day;
+	this.time = time;
 };
 
-// Ads set
-// var ads = [];
-var currentAd;
+// Convert json ad to Ad object (w/ methods)
+var adJsonToAd = function(adJson) {
+	var texts = [];
+	var images = [];
 
-/*
-var setAds = function() {
-	var ad1DateTimeFrame = new DateTimeFrame(new Date("01/01/2014"), new Date("12/31/2014"));
-	var ad1HourTimeFrame = new HourTimeFrame(new Date(0, 0, 0, 6, 0, 0, 0), new Date(0, 0, 0, 23, 0, 0, 0));
-	var ad1TimeFrame = new TimeFrame(ad1DateTimeFrame, [4 - 1, 4 - 1], ad1HourTimeFrame);
+	// Get texts
+	adJson.texts.forEach(function(text) {
+		texts.push(text.text);
+	});
 
-	var ad1 = new Ad("Lego Movie", "templates/a.html", 5, ad1TimeFrame);
-	ad1.addImage("images/lego/2.png");
-	ad1.addImage("images/lego/3.png");
-	ad1.addText("Lego movie!");
-	ad1.addText("Best movie of 2014");
-	ad1.addText("Now playing!");
-	ad1.addText("Lego!");
+	// Get images
+	adJson.images.forEach(function(image) {
+		images.push(image.url);
+	});
+	
+	// Get timeFrame
+	var days = [];
 
-	ads.push(ad1);
-}; setAds();
-*/
+	// Get days
+	adJson.timeFrame.days.forEach(function(day) {
+		days.push(new DayTimeFrame(
+			day.day, 
+			new DateTimeFrame(new Date(day.time.start), new Date(day.time.end))
+		));
+	});
+
+	var timeFrame = new TimeFrame(
+		new DateTimeFrame(new Date(adJson.timeFrame.date.start), new Date(adJson.timeFrame.date.end)),
+		days
+	);
+
+	return new Ad(adJson.name, adJson.templateUrl, adJson.displayDuration, texts, images, timeFrame);
+};
 
 // Doc ready
 $(document).ready(function() {
 	// Get screen params
 	var screenId = getURLParameter('station');
 	if (screenId) {
-		// Get station's ads
-		getAds(screenId);
+		// Append template div for ads
+		$('<div/>', {
+			'id': 'template'
+		}).appendTo('body');
+
+		// Get station's ads and render
+		getAds(screenId, true, 0, 1, renderAds);
 	} else {
 		// Get stations (screens) and render
 		getStations();
@@ -90,25 +106,43 @@ var getStations = function() {
 			html: stations.join('')
 		}).appendTo('body')
 	});
-}
+};
 
-var getAds = function(stationId) {
-	$.getJSON('/ads/station/' + stationId, function(data) {
-		// Append template div for ads
-		$('<div/>', {
-			'id': 'template'
-		}).appendTo('body');
+var getAds = function(stationId, now, offset, limit, callback) {
+	var url = '/ads/station/' + stationId;
 
-		// render ads
-		renderAds(data);
+	// If current time ads
+	if (now) {
+		url += '/now'
+	}
+
+	// Offset
+	if (offset != undefined) {
+		url += '?offset=' + offset;
+	}
+
+	// Limit
+	if (limit != undefined) {
+		url += (offset != undefined) ? '&' : '?';
+		url += 'limit=' + limit;
+	}
+
+	console.log('Request for ads at: ' + url);
+
+	$.getJSON(url, function(data) {
+		// Call callback with data
+		callback(data);
 	});
-}
+};
 
 var renderAds = function(ads) {
 	ads.forEach(function(ad) {
+		// Covert adJson
+		ad = adJsonToAd(ad);
+
 		// Check if should render
-		if (shouldRender(ad) && ad != currentAd) {
-			currentAd = ad;
+		if (shouldRender(ad)) {
+			console.log('render: ' + ad.name);
 			renderAd(ad);
 			return;
 		}
@@ -118,10 +152,10 @@ var renderAds = function(ads) {
 // Load ad template
 // Render images and text to template
 var renderAd = function(ad) {
-	$("#template").load(ad.template, function(responseText, textStatus, req) {
+	$("#template").load(ad.templateUrl, function(responseText, textStatus, req) {
 		// Check if falid to load template
 		if (req.status == '404') {
-			$('#template').append('<h1>Failed to load: ' + ad.template + ' template! Message: ' + req.responseText + '</h1>');
+			$('#template').append('<h1>Failed to load: ' + ad.templateUrl + ' template! Message: ' + req.responseText + '</h1>');
 			return;
 		}
 
@@ -162,16 +196,16 @@ var shouldRender = function(ad) {
 	
 	// If still render -> check if day isnt date timeline
 	if (render && ad.timeFrame.date) {
-		if (!(now.getTime() >= new Date(ad.timeFrame.date.start).getTime() &&
-			now.getTime() <= new Date(ad.timeFrame.date.end).getTime())) {
+		if (!(now.getTime() >= ad.timeFrame.date.start.getTime() &&
+			now.getTime() <= ad.timeFrame.date.end.getTime())) {
 			render = false;
 		}
 	}
 
 	// If still render -> check if time isnt time timeline
 	if (render && time) {
-		if (!(now.getHours() >= new Date(time.start).getHours() &&
-			now.getHours() <= new Date(time.end).getHours())) {
+		if (!(now.getHours() >= time.start.getHours() &&
+			now.getHours() <= time.end.getHours())) {
 			render = false;
 		}
 	}
@@ -181,7 +215,7 @@ var shouldRender = function(ad) {
 
 var nextAd = function() {
 	$("#template").empty();
-	renderAds();
+	getAds(getURLParameter('station'), true, 1, 1, renderAds);
 };
 
 var getURLParameter = function(sParam) {

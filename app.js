@@ -7,6 +7,7 @@ var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/bower_components'));
 
 // ######
 // ROUTES
@@ -22,10 +23,11 @@ app.get('/stations', stations.getAll);
 app.get('/stations/:id', stations.getById);
 app.get('/ads', ads.getAll);
 app.get('/ads/station/:id?', ads.getByStationId);
+app.get('/ads/station/:id/now', ads.getByStationIdNow);
 
 var server = app.listen(8080, function () {
 	var host = server.address().address
 	var port = server.address().port
 
 	console.log('Ads app listening at http://%s:%s', host, port)
-})
+});
