@@ -75,6 +75,8 @@ var adJsonToAd = function(adJson) {
 	return new Ad(adJson.name, adJson.templateUrl, adJson.displayDuration, texts, images, timeFrame);
 };
 
+var offset = 0;
+
 // Doc ready
 $(document).ready(function() {
 	// Get screen params
@@ -86,7 +88,7 @@ $(document).ready(function() {
 		}).appendTo('body');
 
 		// Get station's ads and render
-		getAds(screenId, true, 0, 1, renderAds);
+		getAds(screenId, true, offset++, 1, renderAds, false);
 	} else {
 		// Get stations (screens) and render
 		getStations();
@@ -108,7 +110,7 @@ var getStations = function() {
 	});
 };
 
-var getAds = function(stationId, now, offset, limit, callback) {
+var getAds = function(stationId, now, offset, limit, callback, callbackParam) {
 	var url = '/ads/station/' + stationId;
 
 	// If current time ads
@@ -131,17 +133,19 @@ var getAds = function(stationId, now, offset, limit, callback) {
 
 	$.getJSON(url, function(data) {
 		// Call callback with data
-		callback(data);
+		callback(data, callbackParam);
 	});
 };
 
-var renderAds = function(ads) {
+var renderAds = function(ads, doShouldRender) {
 	ads.forEach(function(ad) {
 		// Covert adJson
 		ad = adJsonToAd(ad);
 
 		// Check if should render
-		if (shouldRender(ad)) {
+		var render = doShouldRender ? shouldRender(ad) : true;
+
+		if (render) {
 			console.log('render: ' + ad.name);
 			renderAd(ad);
 			return;
@@ -215,7 +219,7 @@ var shouldRender = function(ad) {
 
 var nextAd = function() {
 	$("#template").empty();
-	getAds(getURLParameter('station'), true, 1, 1, renderAds);
+	getAds(getURLParameter('station'), true, offset++, 1, renderAds, false);
 };
 
 var getURLParameter = function(sParam) {

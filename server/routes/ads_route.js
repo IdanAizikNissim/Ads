@@ -45,7 +45,7 @@ exports.getAll = function(req, res) {
 var adsOffsetAndLimit = function(ads, offset, limit) {
 	// offset 
 	if (offset) {
-		ads = ads.slice(offset, ads.length);
+		ads = ads.slice(offset%ads.length, ads.length);
 	}
 
 	// limit
