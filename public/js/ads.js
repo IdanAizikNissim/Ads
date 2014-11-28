@@ -143,29 +143,35 @@ var renderAd = function(ad) {
 
 // Check if ad timeframe is now
 var shouldRender = function(ad) {
-	var render = true;
+	var render = false;
+	var time;
 
 	// Get current time
 	var now = new Date();
 
 	// Checking if day of week defined
-	if (ad.timeFrame.daysInWeek) {
+	if (ad.timeFrame.days) {
 		// If today not exist in days of week
-		render = $.inArray(now.getDay(), ad.timeFrame.daysInWeek) != -1 ? true : false;
+		ad.timeFrame.days.forEach(function(day) {
+			if (now.getDay() == day.day) {
+				render = true;
+				time = day.time;
+			}
+		});
 	}
 	
 	// If still render -> check if day isnt date timeline
-	if (render && ad.timeFrame.dateTimeFrame) {
-		if (!(now.getTime() >= ad.timeFrame.dateTimeFrame.start.getTime() &&
-			now.getTime() <= ad.timeFrame.dateTimeFrame.end.getTime())) {
+	if (render && ad.timeFrame.date) {
+		if (!(now.getTime() >= new Date(ad.timeFrame.date.start).getTime() &&
+			now.getTime() <= new Date(ad.timeFrame.date.end).getTime())) {
 			render = false;
 		}
 	}
 
 	// If still render -> check if time isnt time timeline
-	if (render && ad.timeFrame.hourTimeFrame) {
-		if (!(now.getHours() >= ad.timeFrame.hourTimeFrame.start.getHours() &&
-			now.getHours() <= ad.timeFrame.hourTimeFrame.end.getHours())) {
+	if (render && time) {
+		if (!(now.getHours() >= new Date(time.start).getHours() &&
+			now.getHours() <= new Date(time.end).getHours())) {
 			render = false;
 		}
 	}
